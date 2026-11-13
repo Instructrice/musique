@@ -41,6 +41,7 @@ document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="
   <symbol id="i-select" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm4.3-11.7l-5.8 5.8-2.8-2.8-1.4 1.4 4.2 4.2 7.2-7.2-1.4-1.4z"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></symbol>
   <symbol id="i-cloudup" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM9 8V6a3 3 0 0 1 6 0v2H9z"/></symbol>
   <symbol id="i-plist" viewBox="0 0 24 24"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zM2 16h8v-2H2v2zm19.5-4.5L23 13l-6.99 7-4.51-4.5L13 14l3.01 3 5.49-5.5z"/></symbol>
 </svg>
 
@@ -68,7 +69,7 @@ document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="
         <button class="pill" data-import="dir"><svg class="i"><use href="#i-folder"/></svg>Dossier</button>
       </div>
       <div class="stat" id="stat"></div>
-      <div class="pubrow admin-only"><button class="pill solid" id="pubBtn"><svg class="i"><use href="#i-cloudup"/></svg><span>Publier</span></button><button class="ibtn sm" id="ghBtn" title="Réglages GitHub"><svg class="i"><use href="#i-gear"/></svg></button></div>
+      <div class="pubrow admin-only"><button class="pill solid" id="pubBtn"><svg class="i"><use href="#i-cloudup"/></svg><span>Publier</span></button><button class="ibtn sm" id="ghBtn" title="Réglages et verrouillage"><svg class="i"><use href="#i-gear"/></svg></button></div>
     </div>
   </aside>
   <div class="scrim" id="scrim"></div>
@@ -934,7 +935,7 @@ function detectRepo(){
   const seg=location.pathname.split('/').filter(Boolean);
   return {owner:h[1],repo:seg.length&&seg[0]!=='conf'?seg[0]:`${h[1]}.github.io`};
 }
-function ghConf(){const c=LS.get('conf-gh',{}),d=detectRepo();return {owner:c.owner||d.owner||'',repo:c.repo||d.repo||'',branch:c.branch||'main',token:c.token||'',api:(c.api||'https://api.github.com').replace(/\/$/,'')}}
+function ghConf(){const c=LS.get('conf-gh',{}),d=detectRepo();return {owner:c.owner||d.owner||'',repo:c.repo||d.repo||'',branch:c.branch||'main',token:ghToken,api:(c.api||'https://api.github.com').replace(/\/$/,'')}}
 async function gh(path,opt={}){
   const c=ghConf();
   const r=await fetch(`${c.api}/repos/${c.owner}/${c.repo}${path}`,{method:opt.method||'GET',body:opt.body,cache:'no-store',
@@ -973,16 +974,16 @@ function renderPublish(){
 }
 async function ghSettings(){
   const c=ghConf();
-  const v=await ask({title:'Réglages GitHub',text:'Le jeton reste uniquement dans ce navigateur, il n’est jamais publié. Utilise un jeton « fine-grained » limité à ce dépôt, avec Contents : Read and write.',
-    fields:[['owner','Compte GitHub',c.owner],['repo','Dépôt',c.repo],['branch','Branche',c.branch],['token','Jeton d’accès',c.token,'password']],ok:'Enregistrer'});
+  const v=await ask({title:'Réglages GitHub',text:'Compte, dépôt et branche GitHub où le site est publié.',
+    fields:[['owner','Compte GitHub',c.owner],['repo','Dépôt',c.repo],['branch','Branche',c.branch]],ok:'Enregistrer'});
   if(!v)return false;
-  LS.set('conf-gh',{...LS.get('conf-gh',{}),owner:v.owner,repo:v.repo,branch:v.branch||'main',token:v.token});
+  LS.set('conf-gh',{...LS.get('conf-gh',{}),owner:v.owner,repo:v.repo,branch:v.branch||'main'});
   try{const r=await gh('');if(r.permissions&&r.permissions.push===false)throw new Error('ce compte ne peut pas écrire dans le dépôt');toast(`Connecté à ${r.full_name||v.repo}`,2500);return true}
   catch(e){toast('Connexion GitHub impossible : '+e.message,5000);return false}
 }
 async function publish(){
   if(publishing)return;
-  let c=ghConf();if(!c.token||!c.owner||!c.repo){if(!await ghSettings())return;c=ghConf()}
+  let c=ghConf();if(!c.token){lockNow();return}if(!c.owner||!c.repo){if(!await ghSettings())return;c=ghConf()}
   const cat=serialize();if(catKey(cat)===catKey(base)){toast('Rien à publier',1500);return}
   publishing=true;renderPublish();const tt=toast('Préparation…',0);
   try{
@@ -1018,10 +1019,90 @@ async function publish(){
   publishing=false;renderPublish();
 }
 
+/* ================= connexion (page de gestion) =================
+   Le jeton GitHub est chiffré (AES-GCM, clé dérivée du mot de passe par PBKDF2)
+   et stocké uniquement dans ce navigateur. Aucun mot de passe n'est écrit dans le code. */
+let ghToken='';
+const b2a=u=>btoa(String.fromCharCode(...u)), a2b=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function deriveKey(pw,salt){
+  const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function sealToken(tok,pw){
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await deriveKey(pw,salt),new TextEncoder().encode(tok)));
+  LS.set('conf-key',{salt:b2a(salt),iv:b2a(iv),ct:b2a(ct)});
+}
+async function openToken(pw){
+  const v=LS.get('conf-key',null);if(!v)throw new Error('none');
+  return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:a2b(v.iv)},await deriveKey(pw,a2b(v.salt)),a2b(v.ct)));
+}
+function lockNow(){try{sessionStorage.removeItem('conf-session')}catch(e){}ghToken='';location.reload()}
+function loginScreen(){
+  return new Promise(resolve=>{
+    let sess=null;try{sess=sessionStorage.getItem('conf-session')}catch(e){}
+    if(sess&&LS.get('conf-key',null)){ghToken=sess;return resolve()}
+    const el=document.createElement('div');el.className='login';document.body.append(el);
+    if(!(window.crypto&&crypto.subtle)){el.innerHTML=`<div class="lg-card glass"><div class="orb"></div><h2>Connexion impossible</h2><p>Ouvre cette page depuis son adresse en ligne (https://…github.io/…/conf/), pas depuis un fichier sur ton ordinateur.</p></div>`;return}
+    const finish=tok=>{ghToken=tok;try{sessionStorage.setItem('conf-session',tok)}catch(e){}
+      el.classList.add('out');setTimeout(()=>el.remove(),450);resolve()};
+    const draw=mode=>{
+      const c=ghConf(),legacy=(LS.get('conf-gh',{}).token)||'';
+      el.innerHTML=mode==='login'
+        ?`<form class="lg-card glass" autocomplete="off"><div class="orb"></div><h2>Bon retour</h2><p>Entre ton mot de passe pour continuer.</p>
+          <div class="lg-f"><input class="field" type="password" name="pw" placeholder="Mot de passe" autocomplete="current-password" required></div>
+          <button class="pill solid">Entrer</button><div class="lg-err"></div>
+          <button type="button" class="lg-link" data-reset>Mot de passe oublié ? Réinitialiser l’accès</button></form>`
+        :`<form class="lg-card glass" autocomplete="off"><div class="orb"></div><h2>Première connexion</h2>
+          <p>Colle ton jeton GitHub et choisis un mot de passe. Le jeton est chiffré avec ce mot de passe et reste uniquement dans ce navigateur.</p>
+          <div class="lg-f"><label>Compte GitHub</label><input class="field" name="owner" value="${esc(c.owner)}" required spellcheck="false"></div>
+          <div class="lg-f"><label>Dépôt</label><input class="field" name="repo" value="${esc(c.repo)}" required spellcheck="false"></div>
+          <div class="lg-f"><label>Jeton d’accès GitHub</label><input class="field" type="password" name="tok" value="${esc(legacy)}" placeholder="github_pat_…" required spellcheck="false"></div>
+          <div class="lg-f"><label>Nouveau mot de passe</label><input class="field" type="password" name="pw" minlength="8" placeholder="8 caractères minimum" autocomplete="new-password" required></div>
+          <div class="lg-f"><input class="field" type="password" name="pw2" placeholder="Confirmer le mot de passe" autocomplete="new-password" required></div>
+          <button class="pill solid">Continuer</button><div class="lg-err"></div>
+          ${LS.get('conf-key',null)?'<button type="button" class="lg-link" data-back>Retour</button>':''}</form>`;
+      const f=el.querySelector('form'),err=el.querySelector('.lg-err'),btn=f.querySelector('.pill');
+      setTimeout(()=>f.querySelector('input:not([value]),input[value=""]')?.focus(),80);
+      const fail=m=>{err.textContent=m;f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake');btn.disabled=false;btn.textContent=mode==='login'?'Entrer':'Continuer'};
+      el.querySelector('[data-reset]')?.addEventListener('click',async()=>{
+        if(await ask({title:'Réinitialiser l’accès ?',text:'Il faudra recoller ton jeton GitHub et choisir un nouveau mot de passe. Tes brouillons non publiés sont conservés.',ok:'Réinitialiser',input:false,danger:true})){
+          try{localStorage.removeItem('conf-key')}catch(e){}draw('setup')}});
+      el.querySelector('[data-back]')?.addEventListener('click',()=>draw('login'));
+      f.addEventListener('submit',async e=>{
+        e.preventDefault();const d=Object.fromEntries(new FormData(f));btn.disabled=true;btn.textContent='Vérification…';err.textContent='';
+        if(mode==='login'){
+          let tok;try{tok=await openToken(d.pw)}catch(x){return fail('Mot de passe incorrect')}
+          ghToken=tok;
+          try{await gh('')}catch(x){if(/^40[13]/.test(x.message))return fail('Ce jeton n’est plus accepté par GitHub. Réinitialise l’accès avec un nouveau jeton.');toast('GitHub injoignable : '+x.message,4000)}
+          return finish(tok);
+        }
+        if(d.pw!==d.pw2)return fail('Les mots de passe ne correspondent pas');
+        if(d.pw.length<8)return fail('8 caractères minimum');
+        LS.set('conf-gh',{...LS.get('conf-gh',{}),owner:d.owner.trim(),repo:d.repo.trim(),token:undefined});
+        ghToken=d.tok.trim();
+        try{const r=await gh('');if(r.permissions&&r.permissions.push===false)return fail('Ce compte ne peut pas écrire dans le dépôt')}
+        catch(x){return fail(/^404/.test(x.message)?'Dépôt introuvable : vérifie le compte et le nom du dépôt':/^401/.test(x.message)?'Jeton refusé par GitHub':'GitHub : '+x.message)}
+        await sealToken(ghToken,d.pw);
+        finish(ghToken);
+      });
+    };
+    draw(LS.get('conf-key',null)?'login':'setup');
+  });
+}
+function gearMenu(){
+  const r=$('#ghBtn').getBoundingClientRect();
+  openMenu(r.left,r.top-170,[
+    {i:'gear',l:'Réglages du dépôt…',f:ghSettings},
+    {i:'edit',l:'Changer de jeton ou de mot de passe…',f:()=>{try{sessionStorage.removeItem('conf-session');localStorage.removeItem('conf-key')}catch(e){}location.reload()}},
+    '-',{i:'lock',l:'Verrouiller',f:lockNow}]);
+}
+
 /* ================= boot ================= */
 (async()=>{
   try{await DB.open()}catch(e){toast('Stockage local indisponible',5000)}
   if(ADMIN){
+    await loginScreen();
     base=LS.get('conf-base',base);
     const [ts,ps]=await Promise.all([DB.all('tracks'),DB.all('playlists')]);
     ts.forEach(t=>{tracks.set(t.id,t);setCoverURL(t)});
@@ -1033,9 +1114,8 @@ async function publish(){
         else toast('Le site a changé depuis ta dernière publication. Tes modifications locales sont gardées : publier remplacera la version en ligne.',7000);
       }else if(remote.version!==base.version){base.version=remote.version;LS.set('conf-base',base)}
     }
-    $('#pubBtn').addEventListener('click',publish);$('#ghBtn').addEventListener('click',ghSettings);
+    $('#pubBtn').addEventListener('click',publish);$('#ghBtn').addEventListener('click',gearMenu);
     setInterval(renderPublish,1500);
-    if(!ghConf().token)setTimeout(()=>toast('Configure GitHub avec ⚙ (en bas de la barre latérale) pour publier',4500),900);
   }else{
     const [cat,meta]=await Promise.all([fetchSiteCatalog(),DB.all('meta')]);
     const m=new Map(meta.map(x=>[x.id,x]));

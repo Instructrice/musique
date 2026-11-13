@@ -27,7 +27,11 @@
    - *Repository access* : **Only select repositories** → ce dépôt uniquement
    - *Permissions → Repository permissions → Contents* : **Read and write**
    - Copie le jeton (il commence par `github_pat_`).
-5. Ouvre `https://TON-PSEUDO.github.io/NOM-DU-DEPOT/conf/`, clique sur ⚙ en bas de la barre latérale, colle le jeton. Compte et dépôt sont pré-remplis.
+5. Ouvre `https://TON-PSEUDO.github.io/NOM-DU-DEPOT/conf/`. L'écran **Première connexion** demande le jeton et un mot de passe (8 caractères minimum).
+   Le jeton est chiffré avec ce mot de passe et reste dans ton navigateur. Ensuite, `/conf/` demande seulement le mot de passe.
+
+**Connexion** : la session dure tant que l'onglet est ouvert. Le bouton ⚙ en bas de la barre latérale permet de **verrouiller**, de changer de jeton ou de mot de passe, ou de modifier le dépôt.
+Mot de passe oublié : « Réinitialiser l'accès » sur l'écran de connexion, puis recolle ton jeton (tes brouillons sont conservés).
 
 ## Utilisation
 
