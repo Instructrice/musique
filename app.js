@@ -105,6 +105,7 @@ document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="
       <div class="chips" id="speeds"></div>
       <div class="lbl">Minuteur de sommeil <span id="sleepVal"></span></div>
       <div class="chips" id="sleeps"></div>
+      <div id="fxBox"></div>
       <div class="lbl">Raccourcis</div>
       <div class="card2" style="font-size:12.5px;color:var(--mut);line-height:1.9;font-weight:600">
         Espace lecture/pause · ← → ±5 s · Maj+← → titre préc./suiv. · ↑ ↓ volume · M muet · L j'aime · S aléatoire · R répétition · F plein écran · / rechercher
@@ -199,7 +200,10 @@ const DB={db:null,
   del(s,id){return this.run(s,'readwrite',x=>x.delete(id))},
   clear(s){return this.run(s,'readwrite',x=>x.clear())}
 };
-const S=Object.assign({vol:.8,muted:false,shuffle:false,repeat:'off',eq:Array(10).fill(0),preset:'Plat',speed:1,tab:'now',panelOpen:true,last:null,pos:0,queue:[],base:[],qi:-1},(()=>{try{return JSON.parse(localStorage.getItem((ADMIN?'conf':'site')+'-settings'))||{}}catch(e){return {}}})());
+// Sur téléphone, passer le son par la Web Audio API (égaliseur, visualiseur) coupe la lecture
+// en arrière-plan (iPhone surtout) : les effets y sont donc désactivés par défaut.
+const MOBILE=/iPad|iPhone|iPod|Android/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)||matchMedia('(hover: none) and (pointer: coarse)').matches;
+const S=Object.assign({fx:!MOBILE,vol:.8,muted:false,shuffle:false,repeat:'off',eq:Array(10).fill(0),preset:'Plat',speed:1,tab:'now',panelOpen:true,last:null,pos:0,queue:[],base:[],qi:-1},(()=>{try{return JSON.parse(localStorage.getItem((ADMIN?'conf':'site')+'-settings'))||{}}catch(e){return {}}})());
 let saveT;const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem((ADMIN?'conf':'site')+'-settings',JSON.stringify(S))}catch(e){}},150)};
 
 /* ================= state ================= */
@@ -252,7 +256,7 @@ const BANDS=[32,64,125,250,500,1000,2000,4000,8000,16000];
 const PRESETS={'Plat':[0,0,0,0,0,0,0,0,0,0],'Basses':[7,6,5,3,1,0,0,0,0,0],'Aigus':[0,0,0,0,0,1,3,5,6,7],'Vocal':[-2,-2,-1,1,3,4,3,1,0,-1],'Électro':[5,4,1,0,-2,1,1,2,4,5],'Rock':[5,3,2,-1,-2,-1,2,3,4,4],'Acoustique':[3,3,2,1,1,1,2,2,3,2],'Nuit':[-1,0,1,1,0,-1,-2,-3,-4,-5]};
 let actx,eqNodes=[],analyser,gainNode,freq=new Uint8Array(1024);
 function initAudio(){
-  if(actx)return;
+  if(actx||!S.fx)return;
   try{
     actx=new (window.AudioContext||window.webkitAudioContext)();
     let node=actx.createMediaElementSource(audio);
@@ -334,7 +338,9 @@ audio.addEventListener('pause',()=>{document.body.classList.add('paused');update
 audio.addEventListener('ended',()=>{if(sleep.end){sleep.end=false;renderSleep();audio.currentTime=0;return}next(true)});
 audio.addEventListener('error',()=>{if(!current)return;toast('Lecture impossible pour ce fichier');});
 let lastPosSave=0;
-audio.addEventListener('timeupdate',()=>{const n=Date.now();if(n-lastPosSave>4000){lastPosSave=n;S.pos=audio.currentTime;save()}});
+audio.addEventListener('timeupdate',()=>{const n=Date.now();if(n-lastPosSave>4000){lastPosSave=n;S.pos=audio.currentTime;save();
+    if('mediaSession' in navigator&&navigator.mediaSession.setPositionState&&isFinite(audio.duration)&&audio.duration>0){try{navigator.mediaSession.setPositionState({duration:audio.duration,playbackRate:audio.playbackRate,position:Math.min(audio.currentTime,audio.duration)})}catch(e){}}}
+  if(sleep.until&&n>=sleep.until){sleep.until=0;audio.pause();renderSleep();toast('Bonne nuit ☾',2500)}});
 
 /* ================= colors ================= */
 let palette=['#6d5dfc','#ff4f9a','#22c7ff'];
@@ -535,12 +541,18 @@ function buildSound(){
   $('#eq').innerHTML=BANDS.map((f,i)=>`<div class="band"><span class="v" id="ev${i}"></span><input type="range" class="vr" min="-12" max="12" step="0.5" data-band="${i}"><span>${f>=1000?f/1000+'k':f}</span></div>`).join('');
   $('#speeds').innerHTML=[.5,.75,1,1.25,1.5,2].map(s=>`<button class="chip" data-speed="${s}">${s}×</button>`).join('');
   $('#sleeps').innerHTML=[['0','Désactivé'],['15','15 min'],['30','30 min'],['60','1 h'],['end','Fin du titre']].map(([v,l])=>`<button class="chip" data-sleep="${v}">${l}</button>`).join('');
-  syncEq();syncSpeed();renderSleep();
+  syncEq();syncSpeed();renderSleep();renderFx();
 }
 function syncEq(){
   BANDS.forEach((_,i)=>{const r=$(`[data-band="${i}"]`),v=S.eq[i]||0;r.value=v;r.style.setProperty('--p',((v+12)/24*100)+'%');$('#ev'+i).textContent=(v>0?'+':'')+v;if(eqNodes[i])eqNodes[i].gain.setTargetAtTime(v,actx.currentTime,.03)});
   $$('[data-preset]').forEach(b=>b.classList.toggle('on',b.dataset.preset===S.preset));
   $('#eqName').textContent=S.preset;
+}
+function renderFx(){
+  $('#fxBox').innerHTML=`<div class="lbl">Effets audio <span>${S.fx?'égaliseur + visualiseur':'désactivés'}</span></div>
+    <div class="chips"><button class="chip${S.fx?' on':''}" data-fx="1">Activés</button><button class="chip${S.fx?'':' on'}" data-fx="0">Désactivés</button></div>
+    ${MOBILE?`<div class="mutedc" style="text-align:left;padding:0 4px 18px">Sur téléphone, laisse les effets désactivés pour que la musique continue quand tu quittes l’app ou verrouilles l’écran.</div>`:''}`;
+  const eq=$('#eq');eq.style.opacity=S.fx?1:.35;eq.style.pointerEvents=S.fx?'':'none';
 }
 function syncSpeed(){$$('[data-speed]').forEach(b=>b.classList.toggle('on',+b.dataset.speed===S.speed));$('#spdVal').textContent=S.speed+'×';audio.playbackRate=S.speed}
 $('#pane-sound').addEventListener('input',e=>{const r=e.target.closest('[data-band]');if(!r)return;S.eq[+r.dataset.band]=+r.value;S.preset='Personnalisé';syncEq();save()});
@@ -548,6 +560,10 @@ $('#pane-sound').addEventListener('click',e=>{
   const p=e.target.closest('[data-preset]');if(p){S.preset=p.dataset.preset;S.eq=PRESETS[S.preset].slice();syncEq();save()}
   const s=e.target.closest('[data-speed]');if(s){S.speed=+s.dataset.speed;syncSpeed();save()}
   const z=e.target.closest('[data-sleep]');if(z)setSleep(z.dataset.sleep);
+  const fx=e.target.closest('[data-fx]');
+  if(fx){const on=fx.dataset.fx==='1';if(on===S.fx)return;S.fx=on;save();renderFx();
+    if(on){if(!audio.paused)initAudio();toast('Égaliseur et visualiseur activés',1600)}
+    else toast(actx?'Recharge la page pour terminer la désactivation':'Effets désactivés : lecture en arrière-plan possible',2600)}
 });
 const sleep={until:0,end:false};
 function setSleep(v){sleep.until=0;sleep.end=false;if(v==='end')sleep.end=true;else if(+v)sleep.until=Date.now()+v*60000;renderSleep();toast(v==='0'?'Minuteur désactivé':v==='end'?'Arrêt à la fin du titre':`Arrêt dans ${v} min`,1500)}
