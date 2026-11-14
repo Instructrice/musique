@@ -1,6 +1,6 @@
 {
- "version": 1794659674966,
- "updated": "2026-11-14T12:34:34.966Z",
+ "version": 1794660296997,
+ "updated": "2026-11-14T12:44:56.997Z",
  "tracks": [
   {
    "id": "mwfcmaqok6jga3",
@@ -819,22 +819,6 @@
    "added": 1794659401536
   },
   {
-   "id": "mwgdvcqov61xz6",
-   "file": "music/mwgdvcqov61xz6.mp3",
-   "name": "Au fond de la classe.mp3",
-   "title": "Au fond de la classe",
-   "artist": "Djadja & Dinaz",
-   "album": "Drôle de mentalité",
-   "year": "",
-   "genre": "Music",
-   "track": 0,
-   "disc": 0,
-   "duration": 164.64,
-   "size": 6588489,
-   "cover": "",
-   "added": 1794659401536
-  },
-  {
    "id": "mwgdvcqo8anr1a",
    "file": "music/mwgdvcqo8anr1a.mp3",
    "name": "Bomba.mp3",
@@ -863,6 +847,22 @@
    "disc": 0,
    "duration": 164.06,
    "size": 6565391,
+   "cover": "",
+   "added": 1794659401536
+  },
+  {
+   "id": "mwgdvcqov61xz6",
+   "file": "music/mwgdvcqov61xz6.mp3",
+   "name": "Au fond de la classe.mp3",
+   "title": "Au fond de la classe",
+   "artist": "Djadja & Dinaz",
+   "album": "Drôle de mentalité",
+   "year": "",
+   "genre": "Music",
+   "track": 0,
+   "disc": 0,
+   "duration": 164.64,
+   "size": 6588489,
    "cover": "",
    "added": 1794659401536
   },
@@ -1315,22 +1315,6 @@
    "added": 1794659462420
   },
   {
-   "id": "mwgdwnpxzxmn4x",
-   "file": "music/mwgdwnpxzxmn4x.mp3",
-   "name": "600CV.mp3",
-   "title": "600CV",
-   "artist": "Djadja & Dinaz",
-   "album": "TERMINAL 7 (Réédition)",
-   "year": "",
-   "genre": "Music",
-   "track": 0,
-   "disc": 0,
-   "duration": 193.73,
-   "size": 7752930,
-   "cover": "",
-   "added": 1794659462421
-  },
-  {
    "id": "mwgdwnpxawkxdl",
    "file": "music/mwgdwnpxawkxdl.mp3",
    "name": "25G.mp3",
@@ -1343,6 +1327,22 @@
    "disc": 0,
    "duration": 162.46,
    "size": 6502102,
+   "cover": "",
+   "added": 1794659462421
+  },
+  {
+   "id": "mwgdwnpxzxmn4x",
+   "file": "music/mwgdwnpxzxmn4x.mp3",
+   "name": "600CV.mp3",
+   "title": "600CV",
+   "artist": "Djadja & Dinaz",
+   "album": "TERMINAL 7 (Réédition)",
+   "year": "",
+   "genre": "Music",
+   "track": 0,
+   "disc": 0,
+   "duration": 193.73,
+   "size": 7752930,
    "cover": "",
    "added": 1794659462421
   },
@@ -1777,7 +1777,7 @@
     "mwgdvcwhkr5seh",
     "mwgdvcwlpdo0ki"
    ],
-   "cover": "",
+   "cover": "covers/pl-mwgdvrrieqlu3v-tdiz2b.jpg",
    "created": 1794659421006
   },
   {
@@ -1810,7 +1810,7 @@
     "mwgdwntl0i91lo",
     "mwgdwntt52jadw"
    ],
-   "cover": "",
+   "cover": "covers/pl-mwgdwip5s15o9w-4jskvt.jpg",
    "created": 1794659455913
   }
  ]
