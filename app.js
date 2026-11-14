@@ -402,7 +402,7 @@ function markPlaying(){$$('.row').forEach(r=>r.classList.toggle('playing',r.data
 
 /* ================= views ================= */
 function defaultSort(type){return {library:{key:'added',dir:-1},liked:{key:'likedAt',dir:-1},recent:{key:'none'},playlist:{key:'none'},album:{key:'track',dir:1},artist:{key:'album',dir:1}}[type]||{key:'none'}}
-function go(type,id){selected.clear();selMode=false;$('#app').classList.remove('selmode');view={type,id};vsort=defaultSort(type);search='';$('#q').value='';$('#app').classList.remove('menu');render();$('#scroll').scrollTop=0}
+function go(type,id){selected.clear();selMode=false;$('#app').classList.remove('selmode');view={type,id};vsort=defaultSort(type);search='';$('#q').value='';$('#app').classList.remove('drawer');render();$('#scroll').scrollTop=0}
 function baseTracks(){
   const all=[...tracks.values()];
   switch(view.type){
@@ -866,8 +866,8 @@ const onQueueClick=e=>{
   const r=e.target.closest('[data-qi]');if(r){qi=+r.dataset.qi;load(queue[qi])}
 };
 $('#pane-queue').addEventListener('click',onQueueClick);$('#npNext').addEventListener('click',onQueueClick);
-$('#mbtn').addEventListener('click',()=>$('#app').classList.toggle('menu'));
-$('#scrim').addEventListener('click',()=>$('#app').classList.remove('menu'));
+$('#mbtn').addEventListener('click',()=>$('#app').classList.toggle('drawer'));
+$('#scrim').addEventListener('click',()=>$('#app').classList.remove('drawer'));
 
 /* seek & volume */
 let seeking=false;
@@ -905,7 +905,7 @@ addEventListener('keydown',e=>{
     case 'KeyN':next();break;
     case 'KeyP':prev();break;
     case 'Slash':e.preventDefault();$('#q').focus();break;
-    case 'Escape':closeMenu();toggleFs(false);$('#app').classList.remove('menu');if(selMode||selected.size)exitSelect();break;
+    case 'Escape':closeMenu();toggleFs(false);$('#app').classList.remove('drawer');if(selMode||selected.size)exitSelect();break;
     case 'Delete':case 'Backspace':if(ADMIN&&selected.size){e.preventDefault();deleteTracks(selIds().length?selIds():[...selected])}break;
     case 'Enter':{const s=$('.row.sel');if(s)playFrom(curList,+s.dataset.i);break}
   }
